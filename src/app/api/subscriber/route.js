@@ -5,7 +5,7 @@ import Subscriber from "@/model/Subscriber";
 export async function POST(req) {
     try {
         await connectDB();
-        const { email, ip } = await req.json();
+        const { email } = await req.json();
 
         if (!email) {
             return NextResponse.json({ success: false, message: "Email is required" }, { status: 400 });
@@ -16,7 +16,7 @@ export async function POST(req) {
         }
         const newSubscriber = new Subscriber({
             email: email.toLowerCase().trim(),
-            ip: ip || null,
+            ip: req.headers.get("x-forwarded-for")
         });
         await newSubscriber.save();
         return NextResponse.json({ success: true, message: "Subscribed successfully" }, { status: 201 });

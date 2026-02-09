@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast, Toaster } from "react-hot-toast";
+import { toast,Toaster} from "react-hot-toast";
 import { ToastContainer } from "react-toast";
 
 const Footer = () => {
@@ -105,7 +105,7 @@ const Footer = () => {
 
     return (
         <>
-          <ToastContainer />
+          <ToastContainer className="bottom-0" />
             <footer className="bg-gradient-to-b from-gray-900 to-black text-white">
                 {/* Newsletter Section */}
                 <div className="bg-gradient-to-r from-blue-600/90 to-indigo-600/90 backdrop-blur-sm py-16">
