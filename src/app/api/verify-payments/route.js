@@ -65,9 +65,12 @@ export async function POST(req) {
         // ✅ Call receipt API
         let receiptSent = true;
         try {
-            // Use relative path to call internal API and avoid relying on NEXT_PUBLIC_BASE_URL
-            const base = process.env.NEXT_PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
+            // FIXED: Use Vercel's environment variable correctly
+            const base = process.env.BASE_URL || 'https://humanity-foundation.vercel.app' || `http://localhost:${process.env.PORT || 3000}`;
             const receiptUrl = `${base.replace(/\/$/, '')}/api/senddonation-recipt`;
+
+            console.log('Sending receipt to:', receiptUrl); // Debug log
+
             const receiptRes = await fetch(receiptUrl, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -80,10 +83,13 @@ export async function POST(req) {
                     campaignTitle: updatedOrder.campaignTitle,
                 }),
             });
+
             if (!receiptRes.ok) {
                 receiptSent = false;
                 const text = await receiptRes.text();
                 console.error('Receipt API failed:', receiptRes.status, text);
+            } else {
+                console.log('Receipt sent successfully');
             }
         } catch (err) {
             receiptSent = false;
