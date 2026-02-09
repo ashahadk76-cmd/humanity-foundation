@@ -19,7 +19,7 @@ export default function Home() {
   });
 
   useEffect(() => {
-    fetch('/api/donations')
+    fetch('/api/donations', { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         const total = data.donations?.reduce((sum, d) => sum + (d.amount || 0), 0) || 0;

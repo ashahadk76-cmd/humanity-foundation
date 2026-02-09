@@ -118,9 +118,7 @@ const PageContent = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (isFormDisabled || !donationData.amount || donationData.amount <= 0) {
-      return;
-    }
+    if (isFormDisabled || !donationData.amount || donationData.amount <= 0) return;
 
     setLoading(true);
 
@@ -128,70 +126,71 @@ const PageContent = () => {
     const amountInPaise = Math.round(amount * 100);
     const campaignId = id || campaignID;
 
-    const raw = JSON.stringify({
-      name: donationData.name,
-      email: donationData.email,
-      amount: amount,
-      campaignId: campaignId
-    });
-
     fetch("/api/donations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: raw,
+      body: JSON.stringify({
+        name: donationData.name,
+        email: donationData.email,
+        amount,
+        campaignId,
+      }),
     })
-      .then((response) => response.json())
+      .then(res => res.json())
       .then((result) => {
+        // console.log("donation:",result)
         setLoading(false);
 
         const options = {
           key: process.env.NEXT_PUBLIC_RAZORPAY_KEY,
           amount: amountInPaise,
-          currency: 'INR',
-          name: 'Humanity Foundation',
-          description: 'Donation for a better tomorrow',
-          order_id: result?.donation?.razorpayOrderId,
+          currency: "INR",
+          name: "Humanity Foundation",
+          description: "Donation for a better tomorrow",
+          order_id: result.donation.razorpayOrderId,
+
           handler: async function (response) {
             try {
               const verifyRes = await fetch("/api/verify-payments", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                  orderId: result?.donation?.razorpayOrderId,
-                  paymentId: response.razorpay_payment_id,
-                  signature: response.razorpay_signature
-                })
+                  orderId: response.razorpay_order_id,     // ✅ FIX
+                  paymentId: response.razorpay_payment_id, // ✅ FIX
+                  signature: response.razorpay_signature,  // ✅ FIX
+                }),
               });
 
               const verifyData = await verifyRes.json();
 
               if (verifyData.success) {
-                router.push(`/thank-you?name=${donationData.name}&orderId=${result?.donation?.razorpayOrderId}&amount=${donationData.amount}`);
+                router.push(
+                  `/thank-you?name=${donationData.name}&orderId=${response.razorpay_order_id}&amount=${donationData.amount}`
+                );
               } else {
-                alert("Payment verification failed. Please contact support.");
+                alert("Payment verification failed.");
               }
-            } catch (err) {
-              alert("Payment error occurred. Please try again.");
+            } catch {
+              alert("Payment verification error.");
             }
           },
+
           prefill: {
             name: donationData.name,
             email: donationData.email,
           },
-          theme: {
-            color: '#2563eb'
-          },
+          theme: { color: "#2563eb" },
         };
 
         const rzp = new window.Razorpay(options);
         rzp.open();
       })
-      .catch((error) => {
-        console.error(error);
+      .catch(() => {
         setLoading(false);
-        alert("An error occurred. Please try again.");
+        alert("Something went wrong.");
       });
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pt-20">
