@@ -1,218 +1,305 @@
 "use client";
+
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useAppContext } from "./Context";
 import {
-    SidebarClose,
+    Menu,
     Home,
-    PlusSquare,
-    List,
+    Megaphone,
+    Heart,
+    MailCheck,
+    MessageCircle,
     LogOut,
-    Users,
-    BarChart3,
+    ChevronLeft,
+    ChevronRight,
     User,
-    Menu
+    createLucideIcon
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 const Sidebar = () => {
-    const [loggedIn, setLoggedIn] = useState(false);
-    const [loading, setLoading] = useState(true);
+    // 🔹 STATE MANAGEMENT
+    const [isExpanded, setIsExpanded] = useState(true);
+    const [isMobileOpen, setIsMobileOpen] = useState(false);
     const [userData, setUserData] = useState(null);
-    const router = useRouter();
+    const sidebarRef = useRef(null);
     const pathname = usePathname();
     const { adminSidebarOpen, setAdminSidebarOpen } = useAppContext();
-    const [activeRoute, setActiveRoute] = useState("");
 
-    useEffect(() => {
-        checkLoginStatus();
-    }, []);
+    // 🔹 CHECK IF CURRENT PAGE IS ADMIN PAGE
+    const isAdminPage = pathname?.startsWith("/admin");
 
-    useEffect(() => {
-        if (pathname) {
-            setActiveRoute(pathname);
-        }
-    }, [pathname]);
-
-    const checkLoginStatus = async () => {
-        try {
-            setLoading(true);
-            const res = await fetch("/api/me", {
-                method: "GET",
-                credentials: "include",
-                headers: { "Content-Type": "application/json" },
-            });
-
-            const data = await res.json();
-            setLoggedIn(data.loggedIn);
-            setUserData(data.user || null);
-
-            if (!data.loggedIn && pathname?.startsWith("/admin")) {
-                router.push("/admin-login");
-            }
-        } catch (error) {
-            console.error("Error checking login status:", error);
-            setLoggedIn(false);
-            if (pathname?.startsWith("/admin")) {
-                router.push("/admin-login");
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleLogout = async () => {
-        await fetch("/api/admin-logout", {
-            method: "POST",
-            credentials: "include",
-        });
-        setLoggedIn(false);
-        setUserData(null);
-        router.push("/admin-login");
-    };
-
+    // 🔹 NAVIGATION ITEMS (UPDATED TO MATCH REQUIREMENTS)
     const navItems = [
         { name: "Dashboard", href: "/admin/dashboard", icon: <Home size={20} /> },
-        { name: "Create Campaign", href: "/admin/campaigning/create", icon: <PlusSquare size={20} /> },
-        { name: "Campaigns", href: "/admin/campaigning/campaigns", icon: <List size={20} /> },
-        { name: "Users", href: "/admin/campaigning/users", icon: <Users size={20} /> },
-        { name: "Analytics", href: "/admin/analytics", icon: <BarChart3 size={20} /> },
+        { name: "Campaigns", href: "/admin/campaigning/campaigns", icon: <Megaphone size={20} /> },
+        { name: "Campaigns-create", href: "/admin/campaigning/create", icon: <createLucideIcon size={20} /> },
+        { name: "Subscribers", href: "/admin/campaigning/subscribers", icon: <MailCheck size={20} /> },
+        { name: "Contact Queries", href: "/admin/campaigning/query", icon: <MessageCircle size={20} /> },
+     
     ];
 
-    if (loading) {
-        return (
-            <div className="fixed top-0 left-0 w-20 h-screen bg-white/95 backdrop-blur-sm z-40 lg:flex hidden items-center justify-center border-r border-gray-200">
-                <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-            </div>
-        );
-    }
+    // 🔹 CLOSE MOBILE SIDEBAR WHEN CLICKING OUTSIDE
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (isMobileOpen && sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+                setIsMobileOpen(false);
+                setAdminSidebarOpen?.(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [isMobileOpen, setAdminSidebarOpen]);
 
-    if (!loggedIn) return null;
+    // 🔹 FETCH USER DATA
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const res = await fetch("/api/me", {
+                    credentials: "include",
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.loggedIn) {
+                        setUserData(data.user || { name: "Admin User" });
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch user:", error);
+            }
+        };
+        if (isAdminPage) fetchUserData();
+    }, [isAdminPage]);
+
+    // 🔹 TOGGLE FUNCTIONS
+    const toggleSidebar = () => {
+        if (window.innerWidth < 1024) {
+            setIsMobileOpen(!isMobileOpen);
+            setAdminSidebarOpen?.(!isMobileOpen);
+        } else {
+            setIsExpanded(!isExpanded);
+        }
+    };
+
+    const closeMobile = () => {
+        setIsMobileOpen(false);
+        setAdminSidebarOpen?.(false);
+    };
+
+    // 🔹 HELPER FUNCTIONS
+    const isActive = (href) => pathname === href;
+
+    // 🔹 DON'T RENDER ON NON-ADMIN PAGES
+    if (!isAdminPage) return null;
+
+    // Determine sidebar state
+    const isDesktopCollapsed = !isExpanded && !isMobileOpen;
+    const isSidebarVisible = isExpanded || isMobileOpen;
+    const sidebarWidth = isDesktopCollapsed ? "w-[80px]" : "w-[260px]";
 
     return (
         <>
-            {/* Mobile Menu Button */}
+            {/* MOBILE MENU BUTTON - HAMBURGER ICON ON TOP */}
             <button
-                onClick={() => setAdminSidebarOpen(!adminSidebarOpen)}
-                className="fixed top-4 left-4 lg:hidden z-50 p-2 bg-white border border-gray-300 text-gray-700 rounded-lg shadow-sm"
+                onClick={toggleSidebar}
+                className="fixed top-5 left-5 lg:hidden z-50 p-2.5 bg-white/80 backdrop-blur-md border border-gray-200/80 text-gray-700 rounded-2xl shadow-lg hover:bg-white transition-all duration-200 hover:scale-110 active:scale-95"
+                aria-label="Toggle menu"
+                aria-expanded={isMobileOpen}
             >
-                <Menu size={24} />
+                <Menu size={22} />
             </button>
 
-            {/* Mobile Overlay */}
-            {adminSidebarOpen && (
+            {/* MOBILE OVERLAY */}
+            {isMobileOpen && (
                 <div
-                    className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 lg:hidden"
-                    onClick={() => setAdminSidebarOpen(false)}
+                    className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
+                    onClick={closeMobile}
+                    aria-hidden="true"
                 />
             )}
 
-            {/* Sidebar Container - WHITE TRANSPARENT */}
+            {/* SIDEBAR - APPLE STYLE GLASSMORPHISM */}
             <aside
-                className={`fixed top-0 left-0 h-screen bg-white/95 backdrop-blur-sm flex flex-col border-r border-gray-200 transition-all duration-300 z-50 ${adminSidebarOpen
-                    ? "w-64 translate-x-0"
-                    : "w-20 -translate-x-full lg:translate-x-0"
-                    }`}
+                ref={sidebarRef}
+                className={`
+                    fixed top-0 left-0 h-screen z-50
+                    flex flex-col
+                    bg-white/80 backdrop-blur-xl backdrop-saturate-150
+                    border-r border-gray-200/50
+                    shadow-[0_8px_32px_rgba(0,0,0,0.06)]
+                    rounded-2xl lg:rounded-none lg:rounded-r-2xl
+                    transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]
+                    ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+                    ${sidebarWidth}
+                `}
+                aria-label="Admin navigation"
             >
-                {/* Header */}
-                <div className="p-5 border-b border-gray-200 ">
-                    <div className="flex items-center justify-between">
-                        <div className={`flex items-center gap-3 ${!adminSidebarOpen && "lg:justify-center"}`}>
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-sm">
-                                <span className="font-bold text-white text-lg">A</span>
+                {/* HEADER WITH LOGO & TOGGLE */}
+                <div className={`
+                    flex items-center h-20 px-5 border-b border-gray-200/50
+                    ${isDesktopCollapsed ? "justify-center" : "justify-between"}
+                `}>
+                    {/* LOGO - ONLY SHOW WHEN EXPANDED */}
+                    {!isDesktopCollapsed && (
+                        <div className="flex items-center gap-2.5 animate-in fade-in duration-300">
+                            <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md shadow-blue-200/50">
+                                <span className="font-semibold text-white text-lg">A</span>
                             </div>
-                            {adminSidebarOpen && (
-                                <div>
-                                    <h1 className="text-lg font-bold text-gray-800">Admin Panel</h1>
-                                    <p className="text-xs text-gray-500">Control Center</p>
-                                </div>
-                            )}
+                            <div>
+                                <h1 className="font-semibold text-gray-800 text-base tracking-tight">AdminPro</h1>
+                                <p className="text-[11px] text-gray-500">Dashboard</p>
+                            </div>
                         </div>
+                    )}
 
-                        {/* Close Button */}
-                        {adminSidebarOpen && (
-                            <button
-                                onClick={() => setAdminSidebarOpen(false)}
-                                className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
-                            >
-                                <SidebarClose size={20} />
-                            </button>
-                        )}
-                    </div>
+                    {/* TOGGLE BUTTON - ONLY ON DESKTOP */}
+                    <button
+                        onClick={toggleSidebar}
+                        className={`
+                            hidden lg:flex items-center justify-center
+                            w-8 h-8 rounded-xl
+                            text-gray-500 hover:text-blue-600
+                            bg-gray-50/80 hover:bg-blue-50
+                            border border-gray-200/50 hover:border-blue-200
+                            transition-all duration-200 hover:scale-110
+                        `}
+                        aria-label={isExpanded ? "Collapse sidebar" : "Expand sidebar"}
+                    >
+                        {isExpanded ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+                    </button>
                 </div>
 
-                {/* User Profile */}
-                <div className="p-4 border-b border-gray-200">
-                    <div className={`flex items-center gap-3 ${!adminSidebarOpen && "lg:justify-center"}`}>
+                {/* USER PROFILE SECTION - APPLE STYLE */}
+                <div className={`
+                    px-4 py-5 border-b border-gray-200/50
+                    ${isDesktopCollapsed ? "flex justify-center" : ""}
+                `}>
+                    <div className={`
+                        flex items-center gap-3
+                        ${isDesktopCollapsed ? "flex-col" : ""}
+                    `}>
+                        {/* AVATAR WITH STATUS */}
                         <div className="relative">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                                <User size={18} className="text-white" />
+                            <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-sm ring-2 ring-white/50">
+                                {userData?.avatar ? (
+                                    <img src={userData.avatar} alt="Admin" className="w-full h-full rounded-full object-cover" />
+                                ) : (
+                                    <User size={20} className="text-white" />
+                                )}
                             </div>
-                            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
                         </div>
-                        {adminSidebarOpen && (
-                            <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-gray-800 truncate">{userData?.name || "Admin"}</h3>
+
+                        {/* USER INFO - FADE ANIMATION */}
+                        {!isDesktopCollapsed && (
+                            <div className="flex-1 min-w-0 animate-in fade-in slide-in-from-left-2 duration-300">
+                                <h3 className="font-medium text-gray-800 text-sm truncate">
+                                    {userData?.name || "Alex Morgan"}
+                                </h3>
                                 <p className="text-xs text-gray-500 truncate">Administrator</p>
                             </div>
                         )}
+
+                        {/* TOOLTIP WHEN COLLAPSED */}
+                        {isDesktopCollapsed && (
+                            <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap">
+                                {userData?.name || "Alex Morgan"}
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                {/* Navigation */}
-                <div className="flex-1 overflow-y-auto py-4">
-                    <div className="px-3 space-y-1">
-                        {navItems.map((item) => (
-                            <Link
-                                key={item.name}
-                                href={item.href}
-                                onClick={() => {
-                                    setActiveRoute(item.href);
-                                    if (window.innerWidth < 1024) {
-                                        setAdminSidebarOpen(false);
-                                    }
-                                }}
-                                className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 ${activeRoute === item.href
-                                    ? "bg-blue-50 text-blue-600 border-l-3 border-blue-600"
-                                    : "text-gray-600 hover:bg-gray-100"
-                                    } ${!adminSidebarOpen && "lg:justify-center lg:px-3"}`}
-                            >
-                                <div className="flex-shrink-0">
-                                    {item.icon}
-                                </div>
-                                {adminSidebarOpen && (
-                                    <span className="font-medium">{item.name}</span>
-                                )}
-                            </Link>
-                        ))}
-                    </div>
-                </div>
+                {/* NAVIGATION - PREMIUM HOVER EFFECTS */}
+                <nav className="flex-1 overflow-y-auto py-6 px-3" aria-label="Main navigation">
+                    <div className="space-y-1.5">
+                        {navItems.map((item) => {
+                            const active = isActive(item.href);
+                            return (
+                                <Link
+                                    key={item.name}
+                                    href={item.href}
+                                    className={`
+                                        group relative flex items-center gap-3 px-3 py-2.5 rounded-xl
+                                        transition-all duration-200 ease-out
+                                        ${active
+                                            ? "bg-blue-500/10 text-blue-600 shadow-sm shadow-blue-200/50"
+                                            : "text-gray-600 hover:bg-gray-100/80 hover:text-gray-900"
+                                        }
+                                        ${isDesktopCollapsed ? "justify-center" : ""}
+                                    `}
+                                    aria-current={active ? "page" : undefined}
+                                >
+                                    {/* LEFT BORDER INDICATOR FOR ACTIVE LINK */}
+                                    {active && (
+                                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-blue-600 rounded-r-full" />
+                                    )}
 
-                {/* Footer - Logout */}
-                <div className="p-4 border-t border-gray-200">
-                    {adminSidebarOpen ? (
-                        <button
-                            onClick={handleLogout}
-                            className="flex items-center justify-center gap-3 w-full bg-red-50 hover:bg-red-100 text-red-600 px-4 py-3 rounded-lg font-medium transition-colors"
-                        >
-                            <LogOut size={18} />
-                            <span>Logout</span>
-                        </button>
-                    ) : (
-                        <button
-                            onClick={handleLogout}
-                            className="hidden lg:flex items-center justify-center w-full p-3 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition-colors"
-                            aria-label="Logout"
-                        >
-                            <LogOut size={18} />
-                        </button>
-                    )}
+                                    {/* ICON WITH SCALE ANIMATION ON HOVER */}
+                                    <span className={`
+                                        flex-shrink-0 transition-transform duration-200 group-hover:scale-110
+                                        ${active ? "text-blue-600" : "text-gray-500 group-hover:text-gray-700"}
+                                    `}>
+                                        {item.icon}
+                                    </span>
+
+                                    {/* TEXT WITH FADE ANIMATION */}
+                                    {!isDesktopCollapsed && (
+                                        <span className="font-medium text-sm transition-all duration-200 animate-in fade-in">
+                                            {item.name}
+                                        </span>
+                                    )}
+
+                                    {/* TOOLTIP ON COLLAPSED STATE */}
+                                    {isDesktopCollapsed && (
+                                        <span className="absolute left-full ml-2 px-2.5 py-1.5 bg-gray-800/90 backdrop-blur-sm text-white text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap shadow-lg">
+                                            {item.name}
+                                        </span>
+                                    )}
+
+                                    {/* ACTIVE GLOW EFFECT */}
+                                    {active && (
+                                        <span className="absolute inset-0 rounded-xl bg-blue-400/5 animate-pulse" />
+                                    )}
+                                </Link>
+                            );
+                        })}
+                    </div>
+                </nav>
+
+                {/* LOGOUT BUTTON AT BOTTOM - PREMIUM STYLING */}
+                <div className="p-4 border-t border-gray-200/50">
+                    <button
+                        onClick={() => {/* logout handler */ }}
+                        className={`
+                            group relative flex items-center gap-3 w-full
+                            ${isDesktopCollapsed ? "justify-center" : "justify-start"}
+                            px-3 py-2.5 rounded-xl
+                            bg-red-50/80 hover:bg-red-100
+                            text-red-600 hover:text-red-700
+                            transition-all duration-200
+                            border border-red-100/50 hover:border-red-200
+                        `}
+                        aria-label="Logout"
+                    >
+                        <LogOut size={18} className="transition-transform duration-200 group-hover:scale-110" />
+                        {!isDesktopCollapsed && (
+                            <span className="font-medium text-sm transition-all animate-in fade-in">Logout</span>
+                        )}
+                        {isDesktopCollapsed && (
+                            <span className="absolute left-full ml-2 px-2.5 py-1.5 bg-gray-800/90 backdrop-blur-sm text-white text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap shadow-lg">
+                                Logout
+                            </span>
+                        )}
+                    </button>
                 </div>
             </aside>
 
-            {/* Main Content Padding */}
-            <div className={`transition-all duration-300 ${adminSidebarOpen ? "lg:ml-64" : "lg:ml-20"
-                }`}></div>
+            {/* MAIN CONTENT PADDING */}
+            <div className={`
+                transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]
+                ${isExpanded && !isMobileOpen ? "lg:pl-[260px]" : "lg:pl-[80px]"}
+            `} />
         </>
     );
 };

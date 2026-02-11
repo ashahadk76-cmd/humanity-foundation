@@ -72,6 +72,10 @@ export default function Home() {
     return num;
   };
 
+  ///share campaign///
+
+  
+
   if (loading) {
     return <Skeleton />;
   }
@@ -210,8 +214,6 @@ export default function Home() {
             {filteredCampaigns.map((campaign) => {
               const progress = Math.min((campaign.raisedAmount / campaign.targetAmount) * 100, 100);
               const isCompleted = progress >= 100;
-              const daysLeft = Math.max(0, 30 - Math.floor((Date.now() - new Date(campaign.createdAt).getTime()) / (1000 * 60 * 60 * 24)));
-
               return (
                 <div key={campaign._id} className="bg-white rounded-lg sm:rounded-xl shadow-sm sm:shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow">
                   {/* Campaign Image */}
@@ -230,10 +232,10 @@ export default function Home() {
                           <span className="sm:hidden">Done</span>
                         </div>
                       ) : (
-                        <div className="bg-white/95 backdrop-blur-sm px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-bold flex items-center gap-1 shadow-sm">
-                          <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                          {daysLeft}d left
-                        </div>
+                  <div>
+                    
+                  </div>
+                        
                       )}
                     </div>
                   </div>

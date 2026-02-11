@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast,Toaster} from "react-hot-toast";
+import { toast, Toaster } from "react-hot-toast";
 import { ToastContainer } from "react-toast";
 
 const Footer = () => {
@@ -28,7 +28,7 @@ const Footer = () => {
 
     const handleNewsletter = async (e) => {
         e.preventDefault();
-        
+
         if (!email.trim()) {
             toast.error("Please enter your email");
             return;
@@ -67,16 +67,13 @@ const Footer = () => {
         { name: "How It Works", path: "/howitswork" },
         { name: "About Us", path: "/about" },
         { name: "Contact", path: "/contact" },
-        { name: "FAQ", path: "/faq" },
     ];
 
     const campaignCategories = [
-        { name: "Medical", path: "/campaigns?category=medical" },
-        { name: "Education", path: "/campaigns?category=education" },
-        { name: "Disaster Relief", path: "/campaigns?category=disaster" },
-        { name: "Animal Welfare", path: "/campaigns?category=animals" },
-        { name: "Environment", path: "/campaigns?category=environment" },
-        { name: "Community", path: "/campaigns?category=community" },
+        { name: "Success Stories", path: "/success-stories" },
+        { name: "Volunteer", path: "/volunteer" },
+        { name: "FAQ", path: "/faq" },
+
     ];
 
     const legalLinks = [
@@ -105,7 +102,7 @@ const Footer = () => {
 
     return (
         <>
-          <ToastContainer className="bottom-0" />
+            <ToastContainer className="bottom-0" />
             <footer className="bg-gradient-to-b from-gray-900 to-black text-white">
                 {/* Newsletter Section */}
                 <div className="bg-gradient-to-r from-blue-600/90 to-indigo-600/90 backdrop-blur-sm py-16">
@@ -167,7 +164,7 @@ const Footer = () => {
                 {/* Main Footer Content */}
                 <div className="max-w-7xl mx-auto px-4 py-16">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16">
-                        
+
                         {/* Logo & Description */}
                         <div className="lg:col-span-1">
                             <div className="flex items-center gap-3 mb-6">
@@ -239,7 +236,7 @@ const Footer = () => {
                         {/* Campaign Categories */}
                         <div>
                             <h4 className="text-lg font-bold mb-6 pb-3 border-b border-gray-800 text-gray-300">
-                                Campaign Types
+                                Resources
                             </h4>
                             <ul className="space-y-4">
                                 {campaignCategories.map((category) => (
@@ -360,7 +357,7 @@ const Footer = () => {
 
                         <div className="mt-6 pt-6 border-t border-gray-800/50 text-center">
                             <p className="text-xs text-gray-500 leading-relaxed max-w-3xl mx-auto">
-                                This website is compliant with the Information Technology Act, 2000 and follows all RBI guidelines for online transactions. 
+                                This website is compliant with the Information Technology Act, 2000 and follows all RBI guidelines for online transactions.
                                 All donations are eligible for tax exemption under section 80G of the Income Tax Act, 1961.
                             </p>
                         </div>
