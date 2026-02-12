@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation"; // 🔴 STEP 1: useRouter import kar
 import { useAppContext } from "./Context";
 import {
     Menu,
@@ -14,7 +14,8 @@ import {
     ChevronLeft,
     ChevronRight,
     User,
-    createLucideIcon
+    PlusIcon,
+    UserLock
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 
@@ -23,22 +24,60 @@ const Sidebar = () => {
     const [isExpanded, setIsExpanded] = useState(true);
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     const [userData, setUserData] = useState(null);
+    const [isLoggingOut, setIsLoggingOut] = useState(false); // 🔴 STEP 2: Loading state
     const sidebarRef = useRef(null);
     const pathname = usePathname();
+    const router = useRouter(); // 🔴 STEP 3: Router initialize
     const { adminSidebarOpen, setAdminSidebarOpen } = useAppContext();
 
     // 🔹 CHECK IF CURRENT PAGE IS ADMIN PAGE
     const isAdminPage = pathname?.startsWith("/admin");
 
-    // 🔹 NAVIGATION ITEMS (UPDATED TO MATCH REQUIREMENTS)
+    // 🔹 NAVIGATION ITEMS
     const navItems = [
         { name: "Dashboard", href: "/admin/dashboard", icon: <Home size={20} /> },
         { name: "Campaigns", href: "/admin/campaigning/campaigns", icon: <Megaphone size={20} /> },
-        { name: "Campaigns-create", href: "/admin/campaigning/create", icon: <createLucideIcon size={20} /> },
+        { name: "Campaigns-create", href: "/admin/campaigning/create", icon: <PlusIcon size={20} /> },
         { name: "Subscribers", href: "/admin/campaigning/subscribers", icon: <MailCheck size={20} /> },
         { name: "Contact Queries", href: "/admin/campaigning/query", icon: <MessageCircle size={20} /> },
-     
     ];
+
+    // 🔴 STEP 4: HANDLE LOGOUT FUNCTION - Yahi tera main code hai!
+    const handleLogout = async () => {
+        try {
+            setIsLoggingOut(true); // Loading start
+
+            // API call to your existing endpoint
+            const response = await fetch("/api/admin-logout", {
+                method: "POST",
+                credentials: "include", // ✅ Cookie bhejna mat bhoolna
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // ✅ Success - redirect to login
+                router.push("/admin-login");
+                router.refresh(); // ✅ Cache clear
+
+                // Mobile sidebar band kar do agar khula ho
+                setIsMobileOpen(false);
+                setAdminSidebarOpen?.(false);
+            } else {
+                // ❌ API error
+                alert(data.message || "Logout failed. Please try again.");
+                setIsLoggingOut(false);
+            }
+        } catch (error) {
+            // ❌ Network error
+            console.error("Logout error:", error);
+            alert("Network error. Please check your connection.");
+            setIsLoggingOut(false);
+        }
+    };
 
     // 🔹 CLOSE MOBILE SIDEBAR WHEN CLICKING OUTSIDE
     useEffect(() => {
@@ -95,19 +134,18 @@ const Sidebar = () => {
 
     // Determine sidebar state
     const isDesktopCollapsed = !isExpanded && !isMobileOpen;
-    const isSidebarVisible = isExpanded || isMobileOpen;
     const sidebarWidth = isDesktopCollapsed ? "w-[80px]" : "w-[260px]";
 
     return (
         <>
-            {/* MOBILE MENU BUTTON - HAMBURGER ICON ON TOP */}
+            {/* MOBILE MENU BUTTON */}
             <button
                 onClick={toggleSidebar}
-                className="fixed top-5 left-5 lg:hidden z-50 p-2.5 bg-white/80 backdrop-blur-md border border-gray-200/80 text-gray-700 rounded-2xl shadow-lg hover:bg-white transition-all duration-200 hover:scale-110 active:scale-95"
+                className="fixed top-2 left-3 lg:hidden z-50 p-2.5 bg-white/80 backdrop-blur-md border border-gray-200/80 text-gray-700 rounded-2xl shadow-lg hover:bg-white transition-all duration-200 hover:scale-110 active:scale-95"
                 aria-label="Toggle menu"
                 aria-expanded={isMobileOpen}
             >
-                <Menu size={22} />
+                <UserLock size={22} />
             </button>
 
             {/* MOBILE OVERLAY */}
@@ -153,7 +191,7 @@ const Sidebar = () => {
                         </div>
                     )}
 
-                    {/* TOGGLE BUTTON - ONLY ON DESKTOP */}
+                    {/* TOGGLE BUTTON */}
                     <button
                         onClick={toggleSidebar}
                         className={`
@@ -170,7 +208,7 @@ const Sidebar = () => {
                     </button>
                 </div>
 
-                {/* USER PROFILE SECTION - APPLE STYLE */}
+                {/* USER PROFILE SECTION */}
                 <div className={`
                     px-4 py-5 border-b border-gray-200/50
                     ${isDesktopCollapsed ? "flex justify-center" : ""}
@@ -191,7 +229,7 @@ const Sidebar = () => {
                             <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
                         </div>
 
-                        {/* USER INFO - FADE ANIMATION */}
+                        {/* USER INFO */}
                         {!isDesktopCollapsed && (
                             <div className="flex-1 min-w-0 animate-in fade-in slide-in-from-left-2 duration-300">
                                 <h3 className="font-medium text-gray-800 text-sm truncate">
@@ -200,17 +238,10 @@ const Sidebar = () => {
                                 <p className="text-xs text-gray-500 truncate">Administrator</p>
                             </div>
                         )}
-
-                        {/* TOOLTIP WHEN COLLAPSED */}
-                        {isDesktopCollapsed && (
-                            <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap">
-                                {userData?.name || "Alex Morgan"}
-                            </div>
-                        )}
                     </div>
                 </div>
 
-                {/* NAVIGATION - PREMIUM HOVER EFFECTS */}
+                {/* NAVIGATION */}
                 <nav className="flex-1 overflow-y-auto py-6 px-3" aria-label="Main navigation">
                     <div className="space-y-1.5">
                         {navItems.map((item) => {
@@ -230,12 +261,12 @@ const Sidebar = () => {
                                     `}
                                     aria-current={active ? "page" : undefined}
                                 >
-                                    {/* LEFT BORDER INDICATOR FOR ACTIVE LINK */}
+                                    {/* LEFT BORDER INDICATOR */}
                                     {active && (
                                         <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-blue-600 rounded-r-full" />
                                     )}
 
-                                    {/* ICON WITH SCALE ANIMATION ON HOVER */}
+                                    {/* ICON */}
                                     <span className={`
                                         flex-shrink-0 transition-transform duration-200 group-hover:scale-110
                                         ${active ? "text-blue-600" : "text-gray-500 group-hover:text-gray-700"}
@@ -243,21 +274,21 @@ const Sidebar = () => {
                                         {item.icon}
                                     </span>
 
-                                    {/* TEXT WITH FADE ANIMATION */}
+                                    {/* TEXT */}
                                     {!isDesktopCollapsed && (
                                         <span className="font-medium text-sm transition-all duration-200 animate-in fade-in">
                                             {item.name}
                                         </span>
                                     )}
 
-                                    {/* TOOLTIP ON COLLAPSED STATE */}
+                                    {/* TOOLTIP */}
                                     {isDesktopCollapsed && (
                                         <span className="absolute left-full ml-2 px-2.5 py-1.5 bg-gray-800/90 backdrop-blur-sm text-white text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap shadow-lg">
                                             {item.name}
                                         </span>
                                     )}
 
-                                    {/* ACTIVE GLOW EFFECT */}
+                                    {/* ACTIVE GLOW */}
                                     {active && (
                                         <span className="absolute inset-0 rounded-xl bg-blue-400/5 animate-pulse" />
                                     )}
@@ -267,28 +298,46 @@ const Sidebar = () => {
                     </div>
                 </nav>
 
-                {/* LOGOUT BUTTON AT BOTTOM - PREMIUM STYLING */}
+                {/* 🔴 STEP 5: LOGOUT BUTTON WITH FULL HANDLER - YE DEKH BHAI PYAAR SA! */}
                 <div className="p-4 border-t border-gray-200/50">
                     <button
-                        onClick={() => {/* logout handler */ }}
+                        onClick={handleLogout}  // 🔴 Yahan click handler laga diya
+                        disabled={isLoggingOut} // 🔴 Loading state me disable kar diya
                         className={`
                             group relative flex items-center gap-3 w-full
                             ${isDesktopCollapsed ? "justify-center" : "justify-start"}
                             px-3 py-2.5 rounded-xl
-                            bg-red-50/80 hover:bg-red-100
-                            text-red-600 hover:text-red-700
                             transition-all duration-200
-                            border border-red-100/50 hover:border-red-200
+                            ${isLoggingOut
+                                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                : "bg-red-50/80 hover:bg-red-100 text-red-600 hover:text-red-700 border border-red-100/50 hover:border-red-200"
+                            }
                         `}
                         aria-label="Logout"
                     >
-                        <LogOut size={18} className="transition-transform duration-200 group-hover:scale-110" />
+                        {/* 🔴 ANIMATED ICON - Loading state me spin */}
+                        <LogOut
+                            size={18}
+                            className={`
+                                transition-all duration-200
+                                ${isLoggingOut
+                                    ? "animate-spin"
+                                    : "group-hover:scale-110"
+                                }
+                            `}
+                        />
+
+                        {/* 🔴 BUTTON TEXT - Loading state me change */}
                         {!isDesktopCollapsed && (
-                            <span className="font-medium text-sm transition-all animate-in fade-in">Logout</span>
+                            <span className="font-medium text-sm transition-all animate-in fade-in">
+                                {isLoggingOut ? "Logging out..." : "Logout"}
+                            </span>
                         )}
+
+                        {/* 🔴 TOOLTIP WHEN COLLAPSED */}
                         {isDesktopCollapsed && (
                             <span className="absolute left-full ml-2 px-2.5 py-1.5 bg-gray-800/90 backdrop-blur-sm text-white text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap shadow-lg">
-                                Logout
+                                {isLoggingOut ? "Logging out..." : "Logout"}
                             </span>
                         )}
                     </button>

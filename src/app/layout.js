@@ -29,7 +29,7 @@ export default function RootLayout({ children }) {
         <AppProvider>
           <SessionWrapper>
             <Navbar />
-            <AdminSidebar />
+            <AdminSidebar/>
             {children}
             <Footer />
           </SessionWrapper>
