@@ -1,5 +1,4 @@
 "use client";
-
 import {
     Heart,
     Mail,
@@ -18,8 +17,8 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast, Toaster } from "react-hot-toast";
-import { ToastContainer } from "react-toast";
+// import { toast, Toaster } from "react-hot-toast";
+import { ToastContainer,toast } from "react-toast";
 
 const Footer = () => {
     const router = useRouter();
@@ -102,7 +101,7 @@ const Footer = () => {
 
     return (
         <>
-            <ToastContainer className="bottom-0" />
+            <ToastContainer className="top-0 z-100 right-0 absolute " />
             <footer className="bg-gradient-to-b from-gray-900 to-black text-white">
                 {/* Newsletter Section */}
                 <div className="bg-gradient-to-r from-blue-600/90 to-indigo-600/90 backdrop-blur-sm py-16">
