@@ -62,7 +62,7 @@ export async function POST(req) {
         // simple slug generation (no library)
         const slug = title.toLowerCase().trim().replace(/\s+/g, "-");
 
-        const newCampaign =  Campaign.create({
+        const newCampaign = Campaign.create({
             title,
             slug,
             description,
