@@ -105,7 +105,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](https://humanity-foundation.vercel.app/) in your browser.
 
 ---
 
@@ -219,7 +219,7 @@ This project is open source and available under the [MIT License](LICENSE).
 
 **Ashahad Khan**
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=flat&logo=linkedin)](https://linkedin.com/in/your-profile)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=flat&logo=linkedin)](https://www.linkedin.com/in/ashahad-khan-0b89ab374/)
 [![GitHub](https://img.shields.io/badge/GitHub-Follow-black?style=flat&logo=github)](https://github.com/ashahadk76-cmd)
 
 ---
