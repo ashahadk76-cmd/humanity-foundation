@@ -4,7 +4,6 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SessionWrapper from "@/components/SessionWraper";
 import { AppProvider } from "@/components/Context";
-import { HelmetProvider } from "react-helmet-async";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,18 +23,14 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <HelmetProvider>
-          <AppProvider>
-            <SessionWrapper>
-              <Navbar />
-              {children}
-              <Footer />
-            </SessionWrapper>
-          </AppProvider>
-        </HelmetProvider>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <AppProvider>
+          <SessionWrapper>
+            <Navbar />
+            {children}
+            <Footer />
+          </SessionWrapper>
+        </AppProvider>
       </body>
     </html>
   );
