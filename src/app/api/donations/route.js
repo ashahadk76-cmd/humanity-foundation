@@ -22,13 +22,13 @@ export const POST = async (req) => {
             })
         }
         ///razor pay logic here///
-        if (!process.env.RAZORPAY_KEY || !process.env.RAZORPAY_SECRET) {
+        if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
             throw new Error("Razorpay keys are not set in environment variables");;
         }
         // Line 24 pe: "instace" → "instance"
         var instance = new Razorpay({  // ✅ CORRECT
-            key_id: process.env.RAZORPAY_KEY,
-            key_secret: process.env.RAZORPAY_SECRET,
+            key_id: process.env.RAZORPAY_KEY_ID,
+            key_secret: process.env.RAZORPAY_KEY_SECRET,
         });
 
         // Line 28 pe: "razordpayOrder" → "razorpayOrder"
