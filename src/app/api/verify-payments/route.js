@@ -23,10 +23,9 @@ export async function POST(req) {
 
         ///signature verification////
         const genratedSignature = crypto
-            .createHmac('sha256', process.env.RAZORPAY_SECRET)
+            .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)  // ✅ RAZORPAY_SECRET → RAZORPAY_KEY_SECRET
             .update(String(orderId).trim() + '|' + String(paymentId).trim())
             .digest('hex');
-
         console.log("frontend signature:", signature);
         console.log("generated signature:", genratedSignature);
 
