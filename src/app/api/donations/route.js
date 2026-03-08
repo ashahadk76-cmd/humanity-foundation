@@ -67,7 +67,7 @@ export const POST = async (req) => {
         console.error("Razorpay order error:", error);
         return NextResponse.json({
             success: false,
-            message: error.error?.description || "Payment gateway error"  // ✅ err → error
+            message: error.error?.description || "Payment gateway error" // ✅ err → error
         }, { status: 500 });
     }
 }
