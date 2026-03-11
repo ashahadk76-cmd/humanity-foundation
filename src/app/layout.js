@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SessionWrapper from "@/components/SessionWraper";
 import { AppProvider } from "@/components/Context";
+import AdminSidebar from "@/components/AdminSidebar";  // ✅ Add karo
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,6 +28,7 @@ export default function RootLayout({ children }) {
         <AppProvider>
           <SessionWrapper>
             <Navbar />
+            <AdminSidebar />  {/* ✅ Add karo - sirf admin pages pe show hoga */}
             {children}
             <Footer />
           </SessionWrapper>
